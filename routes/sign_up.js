@@ -10,36 +10,48 @@ const uid2 = require("uid2");
 
 const User = require("../models/User");
 
-router.post("/sign_up", (req, res) => {
-  const password = req.fields.password;
-  const passwordConfirm = req.fields.passwordConfirm;
-
-  //   The salt is a random string of characters, different for each user and which will generate the hash in combination with the password.
-  const salt = uid2(12);
-  //   The hash represents the user's password, salted and hashed with the SHA-256 algo (you can use the crypto-js package).
-  const hash = SHA256(password + salt).toString(encBase64);
-  //   The token is a string of 16 random characters generated at the time of registration or authentication.
-  const token = uid2(12);
-
+router.post("/sign_up", async (req, res) => {
   try {
+    const email = req.fields.email;
+    const username = req.fields.username;
+    const name = req.fields.name;
+    const firstname = req.fields.firstname;
+    const password = req.fields.password;
+    const passwordConfirm = req.fields.passwordConfirm;
+    const dateOfBirth = new Date(req.fields.dateOfBirth);
+
+    const userFinded = await User.findOne({ email: email });
+    console.log("user:", userFinded);
+
+    //   The salt is a random string of characters, different for each user and which will generate the hash in combination with the password.
+    const salt = uid2(12);
+    //   The hash represents the user's password, salted and hashed with the SHA-256 algo (you can use the crypto-js package).
+    const hash = SHA256(password + salt).toString(encBase64);
+    //   The token is a string of 16 random characters generated at the time of registration or authentication.
+    const token = uid2(12);
     const newUser = new User({
+      email,
       account: {
-        username: req.fields.username,
-        name: req.fields.name,
-        firstname: req.fields.firstname,
-        dateOfBirth: req.fields.dateOfBirth,
+        username,
+        name,
+        firstname,
+        dateOfBirth,
       },
       salt: salt,
       hash: hash,
       token: token,
     });
-
-    if (password === passwordConfirm) {
-      return res.status(200).json({ newUser });
+    if (userFinded) {
+      return res.status(400).json({ error: `User already exist` });
     } else {
-      return res
-        .status(400)
-        .json({ message: "Password and ConfirmPassword aren't similar" });
+      if (password === passwordConfirm) {
+        await newUser.save();
+        return res.status(200).json({ user: newUser });
+      } else {
+        return res
+          .status(400)
+          .json({ message: "Password and ConfirmPassword aren't similar" });
+      }
     }
   } catch (error) {
     console.error({ error: error.message });

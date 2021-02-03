@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const User = mongoose.model("User", {
+  email: String,
   account: {
     username: String,
     name: String,

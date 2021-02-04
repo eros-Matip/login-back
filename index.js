@@ -21,6 +21,7 @@ app.all("*", function (req, res) {
   res.json({ message: "all routes" });
 });
 
-app.listen(3000, () => {
-  console.log("Server Started ;)");
+// check if you have created an '.env' file, if you dont know what it is look here site: https://www.npmjs.com/package/dotenv
+app.listen(process.env.PORT, () => {
+  console.log(`Server Started on port: ${process.env.PORT} ;)`);
 });
